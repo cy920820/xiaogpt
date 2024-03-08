@@ -28,6 +28,31 @@ def main():
         help="openai api key",
     )
     parser.add_argument(
+        "--glm_key",
+        dest="glm_key",
+        help="chatglm api key",
+    )
+    parser.add_argument(
+        "--gemini_key",
+        dest="gemini_key",
+        help="gemini api key",
+    )
+    parser.add_argument(
+        "--qwen_key",
+        dest="qwen_key",
+        help="Alibaba Qwen api key",
+    )
+    parser.add_argument(
+        "--bard_token",
+        dest="bard_token",
+        help="google bard token see https://github.com/dsdanielpark/Bard-API",
+    )
+    parser.add_argument(
+        "--serpapi_api_key",
+        dest="serpapi_api_key",
+        help="serp api key see https://serpapi.com/",
+    )
+    parser.add_argument(
         "--proxy",
         dest="proxy",
         help="http proxy url like http://localhost:8080",
@@ -65,42 +90,91 @@ def main():
         default=None,
         help="show info",
     )
-    parser.add_argument(
+    tts_group = parser.add_mutually_exclusive_group()
+    tts_group.add_argument(
         "--enable_edge_tts",
-        dest="enable_edge_tts",
-        action="store_true",
-        default=None,
+        dest="tts",
+        action="store_const",
+        const="edge",
         help="if use edge tts",
     )
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument(
+    tts_group.add_argument("--tts", help="tts type", choices=["mi", "edge", "openai"])
+    bot_group = parser.add_mutually_exclusive_group()
+    bot_group.add_argument(
         "--use_gpt3",
         dest="bot",
         action="store_const",
         const="gpt3",
         help="if use openai gpt3 api",
     )
-    group.add_argument(
+    bot_group.add_argument(
         "--use_chatgpt_api",
         dest="bot",
         action="store_const",
         const="chatgptapi",
         help="if use openai chatgpt api",
     )
-    group.add_argument(
+    bot_group.add_argument(
+        "--use_langchain",
+        dest="bot",
+        action="store_const",
+        const="langchain",
+        help="if use langchain",
+    )
+    bot_group.add_argument(
         "--use_newbing",
         dest="bot",
         action="store_const",
         const="newbing",
         help="if use newbing",
     )
+    bot_group.add_argument(
+        "--use_glm",
+        dest="bot",
+        action="store_const",
+        const="glm",
+        help="if use chatglm",
+    )
+    bot_group.add_argument(
+        "--use_bard",
+        dest="bot",
+        action="store_const",
+        const="bard",
+        help="if use bard",
+    )
+    bot_group.add_argument(
+        "--use_qwen",
+        dest="bot",
+        action="store_const",
+        const="qwen",
+        help="if use qwen",
+    )
+    bot_group.add_argument(
+        "--use_gemini",
+        dest="bot",
+        action="store_const",
+        const="gemini",
+        help="if use gemini",
+    )
     parser.add_argument(
         "--bing_cookie_path",
         dest="bing_cookie_path",
         help="new bing cookies path if use new bing",
     )
-    group.add_argument(
-        "--bot", dest="bot", help="bot type", choices=["gpt3", "chatgptapi", "newbing"]
+    bot_group.add_argument(
+        "--bot",
+        dest="bot",
+        help="bot type",
+        choices=[
+            "gpt3",
+            "chatgptapi",
+            "newbing",
+            "glm",
+            "bard",
+            "gemini",
+            "langchain",
+            "qwen",
+        ],
     )
     parser.add_argument(
         "--config",
@@ -114,7 +188,15 @@ def main():
         help="specify base url other than the OpenAI's official API address",
     )
 
+    parser.add_argument(
+        "--deployment_id",
+        dest="deployment_id",
+        help="specify deployment id, only used when api_base points to azure",
+    )
+
     options = parser.parse_args()
+    if options.bot in ["bard"] and options.stream:
+        raise Exception("For now Bard do not support stream")
     config = Config.from_options(options)
 
     miboy = MiGPT(config)
